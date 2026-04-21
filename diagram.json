@@ -11,83 +11,55 @@
       "attrs": { "env": "micropython" }
     },
     {
-      "type": "wokwi-led",
-      "id": "led_manha",
-      "top": -147.6,
-      "left": 157.4,
-      "attrs": { "color": "yellow" }
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad",
+      "top": -299.6,
+      "left": -311.2,
+      "attrs": {}
     },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": -64.8, "left": 232.2, "attrs": {} },
+    { "type": "wokwi-relay", "id": "relay", "top": 80, "left": -150, "attrs": {} },
     {
       "type": "wokwi-led",
-      "id": "led_tarde",
-      "top": -118.8,
-      "left": 205.4,
-      "attrs": { "color": "orange" }
+      "id": "led_magnetron",
+      "top": -51.6,
+      "left": 176.6,
+      "attrs": { "color": "red" }
     },
     {
-      "type": "wokwi-led",
-      "id": "led_noite",
-      "top": -99.6,
-      "left": 243.8,
-      "attrs": { "color": "blue" }
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -214.4,
+      "left": 140,
+      "attrs": { "pins": "i2c" }
     },
-    {
-      "type": "wokwi-led",
-      "id": "led_madrugada",
-      "top": -90,
-      "left": 282.2,
-      "attrs": { "color": "white" }
-    },
-    { "type": "wokwi-resistor", "id": "r1", "top": 0, "left": 140, "attrs": { "value": "220" } },
-    {
-      "type": "wokwi-resistor",
-      "id": "r2",
-      "top": 23.15,
-      "left": 182.4,
-      "attrs": { "value": "220" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r3",
-      "top": 51.95,
-      "left": 220.8,
-      "attrs": { "value": "220" }
-    },
-    {
-      "type": "wokwi-resistor",
-      "id": "r4",
-      "top": 71.15,
-      "left": 268.8,
-      "attrs": { "value": "220" }
-    },
-    { "type": "wokwi-buzzer", "id": "buzzer", "top": 2.4, "left": -94.2, "attrs": {} },
-    {
-      "type": "wokwi-pushbutton",
-      "id": "btn",
-      "top": 102.2,
-      "left": -96,
-      "attrs": { "color": "green" }
-    }
+    { "type": "wokwi-relay-module", "id": "relay1", "top": 192.2, "left": -249.6, "attrs": {} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "esp:GND.1", "led_manha:C", "black", [ "v0" ] ],
-    [ "esp:GND.1", "led_tarde:C", "black", [ "v0" ] ],
-    [ "esp:GND.1", "led_noite:C", "black", [ "v0" ] ],
-    [ "esp:GND.1", "led_madrugada:C", "black", [ "v0" ] ],
-    [ "esp:GND.1", "buzzer:1", "black", [ "v0" ] ],
-    [ "esp:GND.2", "btn:2.r", "black", [ "v0" ] ],
-    [ "esp:13", "r1:1", "yellow", [ "v0" ] ],
-    [ "r1:2", "led_manha:A", "yellow", [ "v0" ] ],
-    [ "esp:12", "r2:1", "orange", [ "v0" ] ],
-    [ "r2:2", "led_tarde:A", "orange", [ "v0" ] ],
-    [ "esp:14", "r3:1", "blue", [ "v0" ] ],
-    [ "r3:2", "led_noite:A", "blue", [ "v0" ] ],
-    [ "esp:27", "r4:1", "white", [ "v0" ] ],
-    [ "r4:2", "led_madrugada:A", "white", [ "v0" ] ],
-    [ "esp:26", "buzzer:2", "purple", [ "v0" ] ],
-    [ "esp:33", "btn:1.r", "green", [ "v0" ] ]
+    [ "esp:13", "keypad:R1", "green", [] ],
+    [ "esp:12", "keypad:R2", "green", [] ],
+    [ "esp:14", "keypad:R3", "green", [] ],
+    [ "esp:27", "keypad:R4", "green", [] ],
+    [ "esp:26", "keypad:C1", "orange", [] ],
+    [ "esp:25", "keypad:C2", "orange", [] ],
+    [ "esp:33", "keypad:C3", "orange", [] ],
+    [ "esp:32", "keypad:C4", "orange", [] ],
+    [ "esp:GND.2", "buzzer:1", "black", [] ],
+    [ "esp:15", "buzzer:2", "purple", [] ],
+    [ "esp:GND.3", "relay:GND", "black", [] ],
+    [ "esp:5V", "relay:VCC", "red", [] ],
+    [ "esp:4", "relay:IN", "white", [] ],
+    [ "esp:5V", "relay:COM", "red", [] ],
+    [ "relay:NO", "led_magnetron:A", "red", [] ],
+    [ "esp:GND.3", "led_magnetron:C", "black", [] ],
+    [ "lcd1:GND", "esp:GND.2", "black", [ "h0" ] ],
+    [ "esp:VN", "lcd1:VCC", "red", [ "h-23.81", "v-96" ] ],
+    [ "esp:21", "lcd1:SDA", "blue", [ "h14.44", "v-240.2" ] ],
+    [ "esp:22", "lcd1:SCL", "yellow", [ "h24.04", "v-201.9" ] ],
+    [ "esp:VN", "relay1:COM", "red", [ "h-23.81", "v164.6" ] ],
+    [ "led_magnetron:A", "relay1:NO", "green", [ "v240", "h-346.8" ] ]
   ],
   "dependencies": {}
 }
