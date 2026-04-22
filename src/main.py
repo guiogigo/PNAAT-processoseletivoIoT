@@ -48,6 +48,20 @@ def atualizar_lcd(linha1, linha2=""):
     lcd.clear()
     lcd.putstr(f"{linha1}\n{linha2}")
 
+# Função para contagem no display LCD
+def counter_converter(time):
+
+    minutes = time //60
+    seconds = time % 60
+    return f"{minutes:02d}:{seconds:02d}"
+
+def second_converter(time):
+    seconds = time % 100
+    seconds += (time // 100)*60
+
+    return seconds
+
+
 # Estados do Microondas
 S_AGUARDANDO = 0
 S_CONFIGURANDO = 1
@@ -83,7 +97,7 @@ while True:
         if tecla and tecla.isdigit():
             estado_atual = S_CONFIGURANDO
             tempo_restante = int(tecla)
-            atualizar_lcd("Tempo:", f"{tempo_restante} s")
+            atualizar_lcd("Tempo:", f"{(tempo_restante//100):02d}:{(tempo_restante%100):02d} s")
             
     elif estado_atual == S_CONFIGURANDO:
         if tecla:
@@ -91,13 +105,14 @@ while True:
                 # Limite de 4 dígitos
                 if tempo_restante < 1000:
                     tempo_restante = (tempo_restante * 10) + int(tecla)
-                    atualizar_lcd("Tempo:", f"{tempo_restante} s")
+                    atualizar_lcd("Tempo:", f"{(tempo_restante//100):02d}:{(tempo_restante%100):02d}")
             elif tecla == '>': # Iniciar
                 if tempo_restante > 0:
                     estado_atual = S_RODANDO
                     rele_magnetron.value(1) # Liga o relé/LED
                     ultimo_tick_relogio = time.ticks_ms() # Salva o tempo de início
-                    atualizar_lcd("Aquecendo...", f"Tempo: {tempo_restante} s")
+                    atualizar_lcd("Aquecendo...", f"Tempo: {(tempo_restante//100):02d}:{(tempo_restante%100):02d} s")
+                    tempo_restante = second_converter(tempo_restante)
             elif tecla == 'X': # Cancelar
                 estado_atual = S_AGUARDANDO
                 tempo_restante = 0
@@ -106,9 +121,10 @@ while True:
     elif estado_atual == S_RODANDO:
         # Cronômetro
         if time.ticks_diff(time.ticks_ms(), ultimo_tick_relogio) >= 1000:
+            print(tempo_restante)
             tempo_restante -= 1
             ultimo_tick_relogio = time.ticks_ms() # Reseta o timer para o próximo segundo
-            atualizar_lcd("Aquecendo...", f"Tempo: {tempo_restante} s")
+            atualizar_lcd("Aquecendo...", f"Tempo: {counter_converter(tempo_restante)} s")
             
             if tempo_restante <= 0:
                 rele_magnetron.value(0) # Desliga o relé
