@@ -67,9 +67,11 @@ S_AGUARDANDO = 0
 S_CONFIGURANDO = 1
 S_RODANDO = 2
 S_FINALIZADO = 3
+S_PAUSADO = 4
 
 estado_atual = S_AGUARDANDO
 tempo_restante = 0
+pausado = False
 
 # Variáveis para temporização
 ultimo_tick_teclado = time.ticks_ms()
@@ -97,7 +99,7 @@ while True:
         if tecla and tecla.isdigit():
             estado_atual = S_CONFIGURANDO
             tempo_restante = int(tecla)
-            atualizar_lcd("Tempo:", f"{(tempo_restante//100):02d}:{(tempo_restante%100):02d} s")
+            atualizar_lcd("Tempo:", f"{(tempo_restante//100):02d}:{(tempo_restante%100):02d}")
             
     elif estado_atual == S_CONFIGURANDO:
         if tecla:
@@ -111,7 +113,7 @@ while True:
                     estado_atual = S_RODANDO
                     rele_magnetron.value(1) # Liga o relé/LED
                     ultimo_tick_relogio = time.ticks_ms() # Salva o tempo de início
-                    atualizar_lcd("Aquecendo...", f"Tempo: {(tempo_restante//100):02d}:{(tempo_restante%100):02d} s")
+                    atualizar_lcd("Aquecendo...", f"Tempo: {(tempo_restante//100):02d}:{(tempo_restante%100):02d}")
                     tempo_restante = second_converter(tempo_restante)
             elif tecla == 'X': # Cancelar
                 estado_atual = S_AGUARDANDO
@@ -120,11 +122,11 @@ while True:
             
     elif estado_atual == S_RODANDO:
         # Cronômetro
-        if time.ticks_diff(time.ticks_ms(), ultimo_tick_relogio) >= 1000:
+        if not pausado and time.ticks_diff(time.ticks_ms(), ultimo_tick_relogio) >= 1000:
             print(tempo_restante)
             tempo_restante -= 1
             ultimo_tick_relogio = time.ticks_ms() # Reseta o timer para o próximo segundo
-            atualizar_lcd("Aquecendo...", f"Tempo: {counter_converter(tempo_restante)} s")
+            atualizar_lcd("Aquecendo...", f"Tempo: {counter_converter(tempo_restante)}")
             
             if tempo_restante <= 0:
                 rele_magnetron.value(0) # Desliga o relé
@@ -135,11 +137,21 @@ while True:
 
         # Botão de cancelar
         if tecla == 'X':
+            pausado = True
             rele_magnetron.value(0)
+            atualizar_lcd("Pausado", f"Tempo: {counter_converter(tempo_restante)}")
+            estado_atual = S_PAUSADO
+
+    elif estado_atual == S_PAUSADO:
+        if tecla == '>':
+            pausado = False
+            estado_atual = S_RODANDO
+        elif tecla == 'X':
+            pausado = False
+            atualizar_lcd("Cancelado", "Pronto!")
             estado_atual = S_AGUARDANDO
             tempo_restante = 0
-            atualizar_lcd("Cancelado", "Pronto!")
-            
+
     elif estado_atual == S_FINALIZADO:
         # Apita 3 vezes (3 ligadas + 3 desligadas = 6 transições)
         if contagem_apitos < 6:
