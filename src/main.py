@@ -1,14 +1,22 @@
 import machine
+from machine import I2C, Pin
 import time
-
+from lcd import I2cLcd
 
 # Configurações de Hardware
 buzzer = machine.Pin(15, machine.Pin.OUT)
 rele_magnetron = machine.Pin(4, machine.Pin.OUT) # Controla o seu LED vermelho
 
+# Configurações do LCD
+i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=400000)
+lcd = I2cLcd(i2c, 0x27, 2, 16) # Inicia o Display
+lcd.backlight_on() # Acende a luz
+
+
 # Definições iniciais
 buzzer.value(0)
 rele_magnetron.value(0)
+lcd.putstr("00:00") 
 
 # Configurações de Keypad
 pinos_linhas = [13, 12, 14, 27]
