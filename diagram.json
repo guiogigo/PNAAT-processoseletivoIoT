@@ -15,7 +15,7 @@
       "id": "keypad",
       "top": -299.6,
       "left": -311.2,
-      "attrs": {}
+      "attrs": { "columns": "3","keys": ["1","2","3","","4","5","6","","7","8","9","","X","0",">"] }
     },
     { "type": "wokwi-buzzer", "id": "buzzer", "top": -64.8, "left": 232.2, "attrs": {} },
     {
@@ -23,7 +23,7 @@
       "id": "led_magnetron",
       "top": -51.6,
       "left": 176.6,
-      "attrs": { "color": "red" }
+      "attrs": { "color": "orange" }
     },
     {
       "type": "wokwi-lcd1602",

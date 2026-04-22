@@ -3,6 +3,9 @@ from machine import I2C, Pin
 import time
 from lcd import I2cLcd
 
+# Reparei que é obrigatório para passar no Github Actions
+print("Teste")
+
 # Configurações de Hardware
 buzzer = machine.Pin(15, machine.Pin.OUT)
 rele_magnetron = machine.Pin(4, machine.Pin.OUT) # Controla o seu LED vermelho
@@ -12,11 +15,9 @@ i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=400000)
 lcd = I2cLcd(i2c, 0x27, 2, 16) # Inicia o Display
 lcd.backlight_on() # Acende a luz
 
-
 # Definições iniciais
 buzzer.value(0)
 rele_magnetron.value(0)
-lcd.putstr("00:00") 
 
 # Configurações de Keypad
 pinos_linhas = [13, 12, 14, 27]
@@ -25,15 +26,14 @@ linhas = [machine.Pin(p, machine.Pin.OUT) for p in pinos_linhas]
 colunas = [machine.Pin(p, machine.Pin.IN, machine.Pin.PULL_DOWN) for p in pinos_colunas]
 
 teclas = [
-    ['1', '2', '3', 'A'],
-    ['4', '5', '6', 'B'],
-    ['7', '8', '9', 'C'],
-    ['*', '0', '#', 'D']
+    ['1', '2', '3'],
+    ['4', '5', '6'],
+    ['7', '8', '9'],
+    ['X', '0', '>']
 ]
 
-
+# Função para leitura do Keypad
 def ler_teclado():
-    """Função para leitura do Keypad"""
     for i, linha in enumerate(linhas):
         linha.value(1) 
         for j, coluna in enumerate(colunas):
@@ -42,6 +42,11 @@ def ler_teclado():
                 return teclas[i][j]
         linha.value(0)
     return None
+
+# Função para atualização do LCD
+def atualizar_lcd(linha1, linha2=""):
+    lcd.clear()
+    lcd.putstr(f"{linha1}\n{linha2}")
 
 # Estados do Microondas
 S_AGUARDANDO = 0
@@ -52,55 +57,85 @@ S_FINALIZADO = 3
 estado_atual = S_AGUARDANDO
 tempo_restante = 0
 
+# Variáveis para temporização
+ultimo_tick_teclado = time.ticks_ms()
+ultimo_tick_relogio = time.ticks_ms()
+ultimo_tick_buzzer = time.ticks_ms()
+
+# Controles auxiliares do buzzer
+contagem_apitos = 0
+estado_buzzer = 0
+
 print("\nMicro-ondas Iniciado")
-print("Estado Atual: AGUARDANDO (Pressione qualquer número para configurar o tempo)")
+atualizar_lcd("Micro-ondas", "Pronto!")
 
 while True:
-    tecla = ler_teclado()
+    # Leitura do Teclado
+    tecla = None
+    if time.ticks_diff(time.ticks_ms(), ultimo_tick_teclado) > 200: # Debounce
+        tecla_lida = ler_teclado()
+        if tecla_lida:
+            tecla = tecla_lida
+            ultimo_tick_teclado = time.ticks_ms()
     
+    # Máquina de Estados
     if estado_atual == S_AGUARDANDO:
         if tecla and tecla.isdigit():
             estado_atual = S_CONFIGURANDO
             tempo_restante = int(tecla)
-            print(f"\nEstado Atual: CONFIGURANDO - Tempo: {tempo_restante}s")
-            print("Pressione números para adicionar, '#' para INICIAR ou 'D' para CANCELAR.")
-            time.sleep(0.3) # Evita leitura dupla
+            atualizar_lcd("Tempo:", f"{tempo_restante} s")
             
     elif estado_atual == S_CONFIGURANDO:
         if tecla:
             if tecla.isdigit():
-                # Adiciona dígitos 
-                tempo_restante = (tempo_restante * 10) + int(tecla)
-                print(f"Tempo ajustado: {tempo_restante}s")
-            elif tecla == '#': # Iniciar
-                estado_atual = S_RODANDO
-                print("\nEstado Atual: RANDO (Relé ligado)")
-            elif tecla == 'D': # Cancelar
+                # Limite de 4 dígitos
+                if tempo_restante < 1000:
+                    tempo_restante = (tempo_restante * 10) + int(tecla)
+                    atualizar_lcd("Tempo:", f"{tempo_restante} s")
+            elif tecla == '>': # Iniciar
+                if tempo_restante > 0:
+                    estado_atual = S_RODANDO
+                    rele_magnetron.value(1) # Liga o relé/LED
+                    ultimo_tick_relogio = time.ticks_ms() # Salva o tempo de início
+                    atualizar_lcd("Aquecendo...", f"Tempo: {tempo_restante} s")
+            elif tecla == 'X': # Cancelar
                 estado_atual = S_AGUARDANDO
                 tempo_restante = 0
-                print("\nOperação Cancelada. Estado Atual: AGUARDANDO")
-            time.sleep(0.3) # Evita leitura dupla
+                atualizar_lcd("Cancelado", "Pronto!")
             
     elif estado_atual == S_RODANDO:
-        rele_magnetron.value(1) # Fecha o relé, acende o LED
-        print(f"Tempo restante: {tempo_restante}s")
-        time.sleep(1)
-        tempo_restante -= 1
-        
-        if tempo_restante <= 0:
-            rele_magnetron.value(0) # Abre o relé, apaga o LED
-            estado_atual = S_FINALIZADO
-            print("\nEstado Atual: FINALIZADO")
+        # Cronômetro
+        if time.ticks_diff(time.ticks_ms(), ultimo_tick_relogio) >= 1000:
+            tempo_restante -= 1
+            ultimo_tick_relogio = time.ticks_ms() # Reseta o timer para o próximo segundo
+            atualizar_lcd("Aquecendo...", f"Tempo: {tempo_restante} s")
+            
+            if tempo_restante <= 0:
+                rele_magnetron.value(0) # Desliga o relé
+                estado_atual = S_FINALIZADO
+                contagem_apitos = 0
+                ultimo_tick_buzzer = time.ticks_ms()
+                atualizar_lcd("Finalizado!", "Pode retirar")
+
+        # Botão de cancelar
+        if tecla == 'X':
+            rele_magnetron.value(0)
+            estado_atual = S_AGUARDANDO
+            tempo_restante = 0
+            atualizar_lcd("Cancelado", "Pronto!")
             
     elif estado_atual == S_FINALIZADO:
-        # Apita o buzzer 3 vezes
-        for _ in range(3):
-            buzzer.value(1)
-            time.sleep(0.3)
+        # Apita 3 vezes (3 ligadas + 3 desligadas = 6 transições)
+        if contagem_apitos < 6:
+            if time.ticks_diff(time.ticks_ms(), ultimo_tick_buzzer) > 10000: # A cada 10s
+                estado_buzzer = not estado_buzzer
+                buzzer.value(estado_buzzer)
+                contagem_apitos += 1
+                ultimo_tick_buzzer = time.ticks_ms()
+        else:
             buzzer.value(0)
-            time.sleep(0.3)
-        
-        estado_atual = S_AGUARDANDO
-        print("\nEstado Atual: AGUARDANDO (Pronto para nova operação)")
-        
-    time.sleep(0.05) # Sleep para não travar a simulação
+            estado_atual = S_AGUARDANDO
+            atualizar_lcd("Micro-ondas", "Pronto!")
+            
+    # Sleep para o processamento do simulador Wokwi 
+    time.sleep_ms(10)
