@@ -14,7 +14,7 @@
       "type": "wokwi-membrane-keypad",
       "id": "keypad",
       "top": -299.6,
-      "left": -311.2,
+      "left": -306.9,
       "attrs": {
         "columns": "3",
         "keys": [ "1", "2", "3", "", "4", "5", "6", "", "7", "8", "9", "", "X", "0", ">" ]
@@ -59,8 +59,6 @@
     [ "lcd1:GND", "esp:GND.2", "black", [ "h0" ] ],
     [ "esp:21", "lcd1:SDA", "blue", [ "h14.44", "v-240.2" ] ],
     [ "esp:22", "lcd1:SCL", "yellow", [ "h24.04", "v-201.9" ] ],
-    [ "led_magnetron:A", "relay1:NO", "green", [ "v240", "h-346.8" ] ],
-    [ "relay1:COM", "esp:5V", "red", [ "h0" ] ],
     [ "esp:5V", "lcd1:VCC", "red", [ "h-23.81", "v-374.5" ] ]
   ],
   "dependencies": {}

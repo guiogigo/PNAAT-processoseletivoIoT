@@ -123,17 +123,19 @@ while True:
     elif estado_atual == S_RODANDO:
         # Cronômetro
         if not pausado and time.ticks_diff(time.ticks_ms(), ultimo_tick_relogio) >= 1000:
-            print(tempo_restante)
-            tempo_restante -= 1
-            ultimo_tick_relogio = time.ticks_ms() # Reseta o timer para o próximo segundo
-            atualizar_lcd("Aquecendo...", f"Tempo: {counter_converter(tempo_restante)}")
-            
             if tempo_restante <= 0:
                 rele_magnetron.value(0) # Desliga o relé
                 estado_atual = S_FINALIZADO
                 contagem_apitos = 0
                 ultimo_tick_buzzer = time.ticks_ms()
                 atualizar_lcd("Finalizado!", "Pode retirar")
+            else: 
+                print(f"{tempo_restante}s")
+                tempo_restante -= 1
+                ultimo_tick_relogio = time.ticks_ms() # Reseta o timer para o próximo segundo
+                atualizar_lcd("Aquecendo...", f"Tempo: {counter_converter(tempo_restante)}")
+            
+            
 
         # Botão de cancelar
         if tecla == 'X':
@@ -155,7 +157,7 @@ while True:
     elif estado_atual == S_FINALIZADO:
         # Apita 3 vezes (3 ligadas + 3 desligadas = 6 transições)
         if contagem_apitos < 6:
-            if time.ticks_diff(time.ticks_ms(), ultimo_tick_buzzer) > 10000: # A cada 10s
+            if time.ticks_diff(time.ticks_ms(), ultimo_tick_buzzer) > 2000: # A cada 10s
                 estado_buzzer = not estado_buzzer
                 buzzer.value(estado_buzzer)
                 contagem_apitos += 1
@@ -163,7 +165,7 @@ while True:
         else:
             buzzer.value(0)
             estado_atual = S_AGUARDANDO
-            atualizar_lcd("Micro-ondas", "Pronto!")
+            
             
     # Sleep para o processamento do simulador Wokwi 
     time.sleep_ms(10)
