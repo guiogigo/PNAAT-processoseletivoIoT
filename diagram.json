@@ -15,7 +15,10 @@
       "id": "keypad",
       "top": -299.6,
       "left": -311.2,
-      "attrs": { "columns": "3","keys": ["1","2","3","","4","5","6","","7","8","9","","X","0",">"] }
+      "attrs": {
+        "columns": "3",
+        "keys": [ "1", "2", "3", "", "4", "5", "6", "", "7", "8", "9", "", "X", "0", ">" ]
+      }
     },
     { "type": "wokwi-buzzer", "id": "buzzer", "top": -64.8, "left": 232.2, "attrs": {} },
     {
@@ -49,7 +52,7 @@
     [ "esp:15", "buzzer:2", "purple", [] ],
     [ "esp:GND.3", "relay:GND", "black", [ "h-369.56", "v154" ] ],
     [ "esp:5V", "relay:VCC", "red", [ "h-254.21" ] ],
-    [ "esp:4", "relay:IN", "white", [ "v19.2", "h-379.16", "v86.6" ] ],
+    [ "esp:4", "relay:IN", "white", [ "v9.6", "h-379.16", "v96.2" ] ],
     [ "esp:5V", "relay:COM", "red", [ "v38.4", "h-140.21" ] ],
     [ "relay:NO", "led_magnetron:A", "red", [] ],
     [ "esp:GND.3", "led_magnetron:C", "black", [] ],

@@ -21,7 +21,7 @@ rele_magnetron.value(0)
 
 # Configurações de Keypad
 pinos_linhas = [13, 12, 14, 27]
-pinos_colunas = [26, 25, 33, 32]
+pinos_colunas = [26, 25, 33]
 linhas = [machine.Pin(p, machine.Pin.OUT) for p in pinos_linhas]
 colunas = [machine.Pin(p, machine.Pin.IN, machine.Pin.PULL_DOWN) for p in pinos_colunas]
 
